@@ -35,11 +35,14 @@ class CrawlerActions(object):
     """
 
     DO_CONTINUE_CRAWLING = 1
-
     DO_SKIP_TO_NEXT = 2
-
     DO_STOP_CRAWLING = 3
-
     DO_AUTOFILL_FORM = 4
-
     DO_NOT_AUTOFILL_FORM = 5
+
+    def __init__(self):
+        self.DO_CONTINUE_CRAWLING = 1
+        self.DO_SKIP_TO_NEXT = 2
+        self.DO_STOP_CRAWLING = 3
+        self.DO_AUTOFILL_FORM = 4
+        self.DO_NOT_AUTOFILL_FORM = 5

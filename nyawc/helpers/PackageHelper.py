@@ -24,7 +24,9 @@
 
 import os
 import re
+
 import pkg_resources
+
 
 class PackageHelper:
     """The Package class contains all the package related information (like the version number).
@@ -44,6 +46,16 @@ class PackageHelper:
     __alias = "nyawc"
 
     __version = None
+
+    def __init__(self,
+                 name: str = "Not Your Average Web Crawler",
+                 description: str = "A web crawler that gathers more than you can imagine.",
+                 alias: str = "nyawc",
+                 version: str = None):
+        self.__name = name
+        self.__description = description
+        self.__alias = alias
+        self.__version = version
 
     @staticmethod
     def get_name():
@@ -105,12 +117,11 @@ class PackageHelper:
         folder = os.path.dirname(file)
 
         try:
-            semver = open(folder + "/../../.semver", "r")
-            PackageHelper.__version = semver.read().rstrip()
-            semver.close()
+            with open(f"{folder}/../../.semver", "r") as semver:
+                PackageHelper.__version = semver.read().rstrip()
             return PackageHelper.__version
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
         # If the package was installed, get the version number via Python's distribution details.
         try:
@@ -118,14 +129,15 @@ class PackageHelper:
             if distribution.version:
                 PackageHelper.__version = distribution.version
             return PackageHelper.__version
-        except:
-            pass
+        except Exception as e:
+            print(e)
 
         return PackageHelper.__version
 
     @staticmethod
     def rst_to_pypi(contents):
-        """Convert the given GitHub RST contents to PyPi RST contents (since some RST directives are not available in PyPi).
+        """
+        Convert the given GitHub RST to PyPi RST contents (since some RST directives are not available in PyPi).
 
         Args:
             contents (str): The GitHub compatible RST contents.
@@ -141,11 +153,11 @@ class PackageHelper:
         # Convert ``<br class="title">`` to a H1 title
         asterisks_length = len(PackageHelper.get_name())
         asterisks = "*" * asterisks_length
-        title = asterisks + "\n" + PackageHelper.get_name() + "\n" + asterisks;
+        title = asterisks + "\n" + PackageHelper.get_name() + "\n" + asterisks
 
-        contents = re.sub(r"(\.\. raw\:\: html\n)(\n {2,4})(\<br class=\"title\"\>)", title, contents)
+        contents = re.sub(r"(\.\. raw:: html\n)(\n {2,4})(<br class=\"title\">)", title, contents)
 
         # The PyPi description does not support raw HTML
-        contents = re.sub(r"(\.\. raw\:\: html\n)((\n {2,4})([A-Za-z0-9<>\ =\"\/])*)*", "", contents)
+        contents = re.sub(r"(\.\. raw:: html\n)((\n {2,4})([A-Za-z\d<> =\"/])*)*", "", contents)
 
         return contents

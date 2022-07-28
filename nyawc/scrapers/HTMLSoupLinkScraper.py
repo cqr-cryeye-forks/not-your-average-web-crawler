@@ -22,9 +22,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from nyawc.http.Request import Request
 from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
 from nyawc.scrapers.BaseScraper import BaseScraper
+
 
 class HTMLSoupLinkScraper(BaseScraper):
     """The HTMLSoupLinkScraper finds URLs from href attributes in HTML using BeautifulSoup.
@@ -58,7 +59,7 @@ class HTMLSoupLinkScraper(BaseScraper):
         host = self.queue_item.response.url
         soup = self.queue_item.get_soup_response()
         base_element = soup.find("base", href=True)
-        elements = soup.select("[{}]".format("],[".join(attributes.keys())))
+        elements = soup.select(f'[{"],[".join(attributes.keys())}]')
 
         # Always use the URL from the base element if it exists.
         # https://www.w3schools.com/tags/tag_base.asp
@@ -68,7 +69,7 @@ class HTMLSoupLinkScraper(BaseScraper):
         found_requests = []
 
         for element in elements:
-            for attribute in attributes.keys():
+            for attribute in attributes:
                 if not element.has_attr(attribute):
                     continue
 
@@ -82,7 +83,8 @@ class HTMLSoupLinkScraper(BaseScraper):
 
         return found_requests
 
-    def __trim_grave_accent(self, href):
+    @staticmethod
+    def __trim_grave_accent(href):
         """Trim grave accents manually (because BeautifulSoup doesn't support it).
 
         Args:

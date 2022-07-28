@@ -22,12 +22,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from nyawc.CrawlerActions import CrawlerActions
-from nyawc.http.Request import Request
-from nyawc.helpers.URLHelper import URLHelper
-from nyawc.helpers.RandomInputHelper import RandomInputHelper
-from nyawc.scrapers.BaseScraper import BaseScraper
 from collections import OrderedDict
+
+from nyawc.CrawlerActions import CrawlerActions
+from nyawc.helpers.RandomInputHelper import RandomInputHelper
+from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
+from nyawc.scrapers.BaseScraper import BaseScraper
+
 
 class HTMLSoupFormScraper(BaseScraper):
     """The HTMLSoupFormScraper finds requests from forms in HTML using BeautifulSoup.
@@ -53,12 +55,7 @@ class HTMLSoupFormScraper(BaseScraper):
         host = self.queue_item.response.url
         soup = self.queue_item.get_soup_response()
 
-        found_requests = []
-
-        for form in soup.find_all("form"):
-            found_requests.append(self.__get_request(host, form))
-
-        return found_requests
+        return [self.__get_request(host, form) for form in soup.find_all("form")]
 
     def __get_request(self, host, soup):
         """Build a request from the given soup form.
@@ -72,15 +69,16 @@ class HTMLSoupFormScraper(BaseScraper):
 
         """
 
-        url = URLHelper.make_absolute(host, self.__trim_grave_accent(soup["action"])) if soup.has_attr("action") else host
+        url = URLHelper.make_absolute(host, self.__trim_grave_accent(soup["action"])) if soup.has_attr(
+            "action") else host
         method_original = soup["method"] if soup.has_attr("method") else "get"
         method = "post" if method_original.lower() == "post" else "get"
         data = self.__get_form_data(soup)
 
         return Request(url, method, data)
 
-
-    def __trim_grave_accent(self, href):
+    @staticmethod
+    def __trim_grave_accent(href: str):
         """Trim grave accents manually (because BeautifulSoup doesn"t support it).
 
         Args:
@@ -91,12 +89,8 @@ class HTMLSoupFormScraper(BaseScraper):
 
         """
 
-        if href.startswith("`"):
-            href = href[1:]
-
-        if href.endswith("`"):
-            href = href[:-1]
-
+        href = href.removeprefix("`")
+        href = href.removesuffix("`")
         return href
 
     def __get_form_data(self, soup):
@@ -120,7 +114,8 @@ class HTMLSoupFormScraper(BaseScraper):
 
         return form_data
 
-    def __get_valid_form_data_elements(self, soup):
+    @staticmethod
+    def __get_valid_form_data_elements(soup):
         """Get all valid form input elements.
 
         Note:
@@ -135,13 +130,8 @@ class HTMLSoupFormScraper(BaseScraper):
 
         """
 
-        elements = []
-
-        for element in soup.find_all(["input", "button", "textarea", "select"]):
-            if element.has_attr("name"):
-                elements.append(element)
-
-        return elements
+        return [element for element in soup.find_all(["input", "button", "textarea", "select"])
+                if element.has_attr("name")]
 
     def __get_default_form_data_input(self, elements):
         """Get the default form data {key: value} for the given elements.
@@ -166,7 +156,8 @@ class HTMLSoupFormScraper(BaseScraper):
 
         return form_data
 
-    def __autofill_form_data(self, form_data, elements):
+    @staticmethod
+    def __autofill_form_data(form_data, elements):
         """Autofill empty form data with random data.
 
         Args:
@@ -179,10 +170,10 @@ class HTMLSoupFormScraper(BaseScraper):
         """
 
         for element in elements:
-            if not element["name"] in form_data:
+            if element["name"] not in form_data:
                 continue
 
-            if not len(form_data[element["name"]]) is 0:
+            if len(form_data[element["name"]]) != 0:
                 continue
 
             if element.name == "textarea":
@@ -192,11 +183,12 @@ class HTMLSoupFormScraper(BaseScraper):
             if element.has_attr("type"):
                 form_data[element["name"]] = RandomInputHelper.get_for_type(element["type"])
 
-    def __get_default_value_from_element(self, element):
+    @staticmethod
+    def __get_default_value_from_element(element):
         """Get the default value of a form element
 
         Args:
-            elements (obj): The soup element.
+            element (obj): The soup element.
 
         Returns:
             str: The default value
@@ -215,9 +207,9 @@ class HTMLSoupFormScraper(BaseScraper):
             if not selected_options and options:
                 selected_options = [options[0]]
 
-            selected_values = []
-
             if is_multiple:
+                selected_values = []
+
                 for option in selected_options:
                     value = option["value"] if option.has_attr("value") else option.string
                     selected_values.append(value)
@@ -234,16 +226,11 @@ class HTMLSoupFormScraper(BaseScraper):
         if element.name == "textarea":
             return element.string if element.string is not None else ""
 
-        if element.name == "input" and element.has_attr("type"):
-            if element["type"] in ("checkbox", "radio"):
-                if not element.has_attr("checked"):
-                    return False
+        if element.name == "input" and element.has_attr("type") and element["type"] in ("checkbox", "radio"):
+            if not element.has_attr("checked"):
+                return False
 
-                if element.has_attr("value"):
-                    return element["value"]
-                else:
-                    return "on"
-
+            return element["value"] if element.has_attr("value") else "on"
         if element.has_attr("value"):
             return element["value"]
 

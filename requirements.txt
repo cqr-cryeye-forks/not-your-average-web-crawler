@@ -2,6 +2,10 @@ beautifulsoup4==4.11.1
 lxml==4.9.1
 requests==2.28.1
 requests_toolbelt==0.9.1
-sphinx==5.0.2
+sphinx==5.1.1
 sphinx-better-theme==0.1.5
 sphinxcontrib-napoleon==0.7
+
+nyawc~=1.8.2
+urllib3==1.26.11
+setuptools==63.2.0

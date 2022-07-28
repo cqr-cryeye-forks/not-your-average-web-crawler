@@ -22,8 +22,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from nyawc.helpers.URLHelper import URLHelper
 from bs4 import BeautifulSoup
+
+from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
+from nyawc.http.Response import Response
+
 
 class QueueItem(object):
     """The QueueItem class keeps track of the request and response and the crawling status.
@@ -44,20 +48,15 @@ class QueueItem(object):
 
     Note:
         A queue item will be decomposed (cached objects are deleted to free up memory) when it is
-        not likeley to be used again. After decompisition variables will not be cached anymore.
+        not likely to be used again. After decomposition variables will not be cached anymore.
 
     """
 
     STATUS_QUEUED = "queued"
-
     STATUS_IN_PROGRESS = "in_progress"
-
     STATUS_FINISHED = "finished"
-
     STATUS_CANCELLED = "cancelled"
-
     STATUS_ERRORED = "errored"
-
     STATUSES = [
         STATUS_QUEUED,
         STATUS_IN_PROGRESS,
@@ -66,12 +65,12 @@ class QueueItem(object):
         STATUS_ERRORED
     ]
 
-    def __init__(self, request, response):
+    def __init__(self, request: Request, response: Response):
         """Constructs a QueueItem instance.
 
         Args:
-            request (:class:`nyawc.http.Request`): The Request object.
-            response (:class:`nyawc.http.Response`): The Response object (empty object when initialized).
+            request: The Request object.
+            response: The Response object (empty object when initialized).
 
         """
 
@@ -83,6 +82,19 @@ class QueueItem(object):
         self.request = request
         self.response = response
 
+        self.STATUS_QUEUED = "queued"
+        self.STATUS_IN_PROGRESS = "in_progress"
+        self.STATUS_FINISHED = "finished"
+        self.STATUS_CANCELLED = "cancelled"
+        self.STATUS_ERRORED = "errored"
+        self.STATUSES = [
+            self.STATUS_QUEUED,
+            self.STATUS_IN_PROGRESS,
+            self.STATUS_FINISHED,
+            self.STATUS_CANCELLED,
+            self.STATUS_ERRORED
+        ]
+
     def get_soup_response(self):
         """Get the response as a cached BeautifulSoup container.
 
@@ -91,14 +103,13 @@ class QueueItem(object):
 
         """
 
-        if self.response is not None:
-            if self.__response_soup is None:
-                result = BeautifulSoup(self.response.text, "lxml")
+        if self.response is not None and self.__response_soup is None:
+            result = BeautifulSoup(self.response.text, "lxml")
 
-                if self.decomposed:
-                    return result
-                else:
-                    self.__response_soup = BeautifulSoup(self.response.text, "lxml")
+            if self.decomposed:
+                return result
+            else:
+                self.__response_soup = BeautifulSoup(self.response.text, "lxml")
 
         return self.__response_soup
 

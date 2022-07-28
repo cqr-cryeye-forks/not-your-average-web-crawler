@@ -24,6 +24,10 @@
 
 import re
 
+from nyawc.Options import Options
+from nyawc.http.Request import Request
+
+
 class Routing(object):
     """The Routing class counts requests that match certain routes.
 
@@ -33,29 +37,29 @@ class Routing(object):
 
     """
 
-    def __init__(self, options):
+    def __init__(self, options: Options):
         """Constructs a Crawler instance.
 
         Args:
-            options (:class:`nyawc.Options`): The options to use for the current crawling runtime.
+            options: The options to use for the current crawling runtime.
 
         """
 
         self.__routing_options = options.routing
         self.__routing_count = {}
 
-    def increase_route_count(self, crawled_request):
+    def increase_route_count(self, crawled_request: Request):
         """Increase the count that determines how many times a URL of a certain route has been crawled.
 
         Args:
-            crawled_request (:class:`nyawc.http.Request`): The request that possibly matches a route.
+            crawled_request: The request that possibly matches a route.
 
         """
 
         for route in self.__routing_options.routes:
             if re.compile(route).match(crawled_request.url):
                 count_key = str(route) + crawled_request.method
-                
+
                 if count_key in self.__routing_count.keys():
                     self.__routing_count[count_key] += 1
                 else:
@@ -63,7 +67,7 @@ class Routing(object):
 
                 break
 
-    def is_treshold_reached(self, scraped_request):
+    def is_treshold_reached(self, scraped_request: Request):
         """Check if similar requests to the given requests have already been crawled X times. Where X is the 
         minimum treshold amount from the options.
 
@@ -81,5 +85,5 @@ class Routing(object):
 
                 if count_key in self.__routing_count.keys():
                     return self.__routing_count[count_key] >= self.__routing_options.minimum_threshold
-                
+
         return False

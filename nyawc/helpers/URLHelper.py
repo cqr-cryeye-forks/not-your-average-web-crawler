@@ -24,11 +24,8 @@
 
 from collections import OrderedDict
 
-try: # Python 3
-    from urllib.parse import urljoin, urlparse, parse_qsl, urlencode, urlunparse
-except: # Python 2
-    from urllib import urlencode
-    from urlparse import urljoin, urlparse, parse_qsl, urlunparse
+from urllib.parse import urljoin, urlparse, parse_qsl, urlunparse
+
 
 class URLHelper:
     """A helper for URL strings.
@@ -39,6 +36,11 @@ class URLHelper:
     """
 
     __cache = {}
+
+    def __init__(self, cache: dict = None):
+        if cache is None:
+            cache = {}
+        self.__cache = cache
 
     @staticmethod
     def make_absolute(base, relative):
@@ -60,6 +62,7 @@ class URLHelper:
 
             base_parsed = urlparse(base)
             new_path = base_parsed.path.rsplit('/', 1)[0]
+            # noinspection PyProtectedMember
             base_parsed = base_parsed._replace(path=new_path)
             base = base_parsed.geturl()
 
@@ -174,10 +177,7 @@ class URLHelper:
 
         parts = URLHelper.__cache[url].netloc.split(".")
 
-        if len(parts) == 1:
-            return parts[0]
-        else:
-            return ".".join(parts[-2:-1])
+        return parts[0] if len(parts) == 1 else ".".join(parts[-2:-1])
 
     @staticmethod
     def get_tld(url):
@@ -196,10 +196,7 @@ class URLHelper:
 
         parts = URLHelper.__cache[url].netloc.split(".")
 
-        if len(parts) == 1:
-            return ""
-        else:
-            return parts[-1]
+        return "" if len(parts) == 1 else parts[-1]
 
     @staticmethod
     def get_path(url):
@@ -267,10 +264,7 @@ class URLHelper:
 
         """
 
-        query_params = []
-
-        for key, value in query.items():
-            query_params.append(key + "=" + value)
+        query_params = [f"{key}={value}" for key, value in query.items()]
 
         return "&".join(query_params)
 

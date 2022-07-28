@@ -22,25 +22,30 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 import importlib
+import os
+
 import requests
+
+from nyawc.Options import Options
+from nyawc.QueueItem import QueueItem
+
 
 class Handler(object):
     """The Handler class executes HTTP requests.
 
     Attributes:
-        __options (obj): The settins/options object.
+        __options (obj): The settings/options object.
         __queue_item (obj): The queue item containing a request to execute.
 
     """
 
-    def __init__(self, options, queue_item):
+    def __init__(self, options: Options, queue_item: QueueItem):
         """Construct the HTTP handler.
 
         Args:
-            options (:class:`nyawc.Options`): The settins/options object.
-            queue_item (:class:`nyawc.QueueItem`): The queue item containing the request.
+            options: The settings/options object.
+            queue_item: The queue item containing the request.
 
         """
 
@@ -82,7 +87,8 @@ class Handler(object):
 
         return new_requests
 
-    def __make_request(self, url, method, data, auth, cookies, headers, proxies, timeout, verify):
+    @staticmethod
+    def __make_request(url: str, method: str, data: str, auth, cookies, headers, proxies, timeout: int, verify=True):
         """Execute a request with the given data.
 
         Args:
@@ -127,12 +133,13 @@ class Handler(object):
         modules = []
 
         for module_string in modules_strings:
-            module = importlib.import_module("nyawc.scrapers." + module_string)
+            module = importlib.import_module(f"nyawc.scrapers.{module_string}")
             modules.append(getattr(module, module_string))
 
         return modules
 
-    def __get_all_scrapers_modules(self):
+    @staticmethod
+    def __get_all_scrapers_modules() -> list:
         """Find all available scraper modules.
 
         Returns:
@@ -140,18 +147,14 @@ class Handler(object):
 
         """
 
-        modules = []
-
         file = os.path.realpath(__file__)
         folder = os.path.dirname(file)
 
-        for filename in os.listdir(folder + "/../scrapers"):
-            if filename.endswith("Scraper.py") and not filename.startswith("Base"):
-                modules.append(filename[:-3])
+        return [filename[:-3] for filename in os.listdir(f"{folder}/../scrapers") if
+                filename.endswith("Scraper.py") and not filename.startswith("Base")]
 
-        return modules
-
-    def __content_type_matches(self, content_type, available_content_types):
+    @staticmethod
+    def __content_type_matches(content_type: str, available_content_types: list[str]) -> bool:
         """Check if the given content type matches one of the available content types.
 
         Args:
@@ -169,8 +172,4 @@ class Handler(object):
         if content_type in available_content_types:
             return True
 
-        for available_content_type in available_content_types:
-            if available_content_type in content_type:
-                return True
-
-        return False
+        return any(available_content_type in content_type for available_content_type in available_content_types)

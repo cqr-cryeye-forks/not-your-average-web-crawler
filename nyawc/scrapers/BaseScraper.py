@@ -21,36 +21,48 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-from nyawc.http.Request import Request
+from nyawc.Options import Options
+from nyawc.QueueItem import QueueItem
 from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
+
 
 class BaseScraper(object):
     """The BaseScraper can be used to create other scrapers.
 
     Attributes:
-        __options (:class:`nyawc.Options`): The settins/options object.
-        __queue_item (:class:`nyawc.QueueItem`): The queue item containing the response to scrape.
+        options: The settings/options object.
+        queue_item: The queue item containing the response to scrape.
 
     """
 
-    def __init__(self, options, queue_item):
+    def __init__(self, options: Options, queue_item: QueueItem):
         """Construct the HTMLSoupLinkScraper instance.
 
         Args:
-            options (:class:`nyawc.Options`): The settins/options object.
-            queue_item (:class:`nyawc.QueueItem`): The queue item containing a response the scrape.
+            options: The settings/options object.
+            queue_item: The queue item containing a response the scrape.
 
         """
 
         self.options = options
         self.queue_item = queue_item
 
-    def get_requests(self):
+    def derived_get_requests(self):
+        """
+        Get all the new requests that were found in the response.
+
+        Returns:
+            list: A list of new requests that were found.
+
+        """
+        ...
+
+    def get_requests(self) -> list[Request]:
         """Get all the new requests that were found in the response.
 
         Returns:
-            list(:class:`nyawc.http.Request`): A list of new requests that were found.
+            list: A list of new requests that were found.
 
         """
 

@@ -24,9 +24,11 @@
 
 import threading
 
+from nyawc.Options import Options
+from nyawc.QueueItem import QueueItem
 from nyawc.helpers.DebugHelper import DebugHelper
 from nyawc.http.Handler import Handler
-from nyawc.QueueItem import QueueItem
+
 
 class CrawlerThread(threading.Thread):
     """The crawler thread executes the HTTP request using the HTTP handler.
@@ -34,19 +36,19 @@ class CrawlerThread(threading.Thread):
     Attributes:
         __callback (obj): The method to call when finished
         __callback_lock (bool): The callback lock that prevents race conditions.
-        __options (:class:`nyawc.Options`): The settins/options object.
+        __options (:class:`nyawc.Options`): The settings/options object.
         __queue_item (:class:`nyawc.QueueItem`): The queue item containing a request to execute.
 
     """
 
-    def __init__(self, callback, callback_lock, options, queue_item):
+    def __init__(self, callback, callback_lock, options: Options, queue_item: QueueItem):
         """Constructs a crawler thread instance
 
         Args:
             callback (obj): The method to call when finished
-            callback_lock (bool): The callback lock that prevents race conditions.
-            options (:class:`nyawc.Options`): The settins/options object.
-            queue_item (:class:`nyawc.QueueItem`): The queue item containing a request to execute.
+            callback_lock: The callback lock that prevents race conditions.
+            options: The settings/options object.
+            queue_item: The queue item containing a request to execute.
 
         """
 
@@ -90,20 +92,15 @@ class CrawlerThread(threading.Thread):
 
         except Exception as e:
             failed = True
-
-            error_message = "Setting status of '{}' to '{}' because of an HTTP error.".format(
-                self.__queue_item.request.url,
-                QueueItem.STATUS_ERRORED
-            )
+            error_message = f"Setting status of '{self.__queue_item.request.url}' to '{QueueItem.STATUS_ERRORED}' " \
+                            f"because of an HTTP error."
 
             DebugHelper.output(self.__options, error_message)
-            DebugHelper.output(self.__options, e)
-
+            DebugHelper.output(self.__options, str(e))
             try:
                 self.__options.callbacks.request_on_error(self.__queue_item, str(e))
             except Exception as e:
                 print(e)
-
         for new_request in new_requests:
             new_request.parent_url = self.__queue_item.request.url
 

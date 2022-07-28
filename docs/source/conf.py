@@ -13,12 +13,17 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+import json
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import os
 import sys
+from collections import OrderedDict
+
+from better import better_theme_path
+
 sys.path.insert(0, os.path.abspath('../..'))
 
 # -- General configuration ------------------------------------------------
@@ -88,8 +93,8 @@ todo_include_todos = False
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-from better import better_theme_path
+
+
 html_theme_path = [better_theme_path]
 html_theme = 'better'
 
@@ -98,47 +103,48 @@ html_theme = 'better'
 # documentation.
 #
 html_theme_options = {
-  # show sidebar on the right instead of on the left
-  'rightsidebar': False,
+    # show sidebar on the right instead of on the left
+    'rightsidebar': False,
 
-  # CSS files to include after all other CSS files
-  # (refer to by relative path from conf.py directory, or link to a
-  # remote file)
-  # 'cssfiles': ['_static/my_style.css'],  # default is empty list
+    # CSS files to include after all other CSS files
+    # (refer to by relative path from conf.py directory, or link to a
+    # remote file)
+    # 'cssfiles': ['_static/my_style.css'],  # default is empty list
 
-  # show a big text header with the value of html_title
-  'showheader': True,
+    # show a big text header with the value of html_title
+    'showheader': True,
 
-  # show the breadcrumbs and index|next|previous links at the top of
-  # the page
-  'showrelbartop': False,
-  # same for bottom of the page
-  'showrelbarbottom': False,
+    # show the breadcrumbs and index|next|previous links at the top of
+    # the page
+    'showrelbartop': False,
+    # same for bottom of the page
+    'showrelbarbottom': False,
 
-  # show the self-serving link in the footer
-  'linktotheme': False,
+    # show the self-serving link in the footer
+    'linktotheme': False,
 
-  # width of the sidebar. page width is determined by a CSS rule.
-  # I prefer to define things in rem because it scales with the
-  # global font size rather than pixels or the local font size.
-  'sidebarwidth': '0px',
+    # width of the sidebar. page width is determined by a CSS rule.
+    # I prefer to define things in rem because it scales with the
+    # global font size rather than pixels or the local font size.
+    'sidebarwidth': '0px',
 
-  # color of all body text
-  'textcolor': '#000000',
+    # color of all body text
+    'textcolor': '#000000',
 
-  # color of all headings (<h1> tags); defaults to the value of
-  # textcolor, which is why it's defined here at all.
-  'headtextcolor': '',
+    # color of all headings (<h1> tags); defaults to the value of
+    # textcolor, which is why it's defined here at all.
+    'headtextcolor': '',
 
-  # color of text in the footer, including links; defaults to the
-  # value of textcolor
-  'footertextcolor': '',
+    # color of text in the footer, including links; defaults to the
+    # value of textcolor
+    'footertextcolor': '',
 
-  # Custom CSS
-  'cssfiles': ['_static/css/bootstrap.min.css?' + version, '_static/css/bootstrap-theme.css?' + version],
+    # Custom CSS
+    'cssfiles': [f'_static/css/bootstrap.min.css?{version}', f'_static/css/bootstrap-theme.css?{version}'],
 
-  # Custom JS
-  'scriptfiles': ['../releases.js?' + version, '_static/js/bootstrap.min.js?' + version, '_static/js/releases-dropdown.js?' + version, '_static/js/bootstrap-theme.js?' + version]
+    # Custom JS
+    'scriptfiles': [f'../releases.js?{version}', f'_static/js/bootstrap.min.js?{version}',
+                    f'_static/js/releases-dropdown.js?{version}', f'_static/js/bootstrap-theme.js?{version}']
 }
 
 # Add any paths that contain custom static files (such as style sheets) here,
@@ -207,8 +213,9 @@ html_short_title = "Home"
 
 # Sidebar contents
 html_sidebars = {
-  '**': [],
+    '**': [],
 }
+
 
 # Absolute link the the source code
 def linkcode_resolve(domain, info):
@@ -219,21 +226,20 @@ def linkcode_resolve(domain, info):
         return None
 
     filename = info['module'].replace('.', '/')
-    return "https://github.com/tijme/not-your-average-web-crawler/tree/{}/{}.py".format(semver, filename)
+    return f"https://github.com/tijme/not-your-average-web-crawler/tree/{semver}/{filename}.py"
+
 
 # Napoleon
 napoleon_google_docstring = True
 napoleon_include_init_with_doc = True
-napoleon_include_private_with_doc  = True
+napoleon_include_private_with_doc = True
 
 # Always make sure current release is in releases.js
-import json
-from collections import OrderedDict
 
 releasesjs = open('../../releases.js').read().replace("var releases = ", "")
-releases = json.loads(releasesjs, object_pairs_hook=OrderedDict);
+releases = json.loads(releasesjs, object_pairs_hook=OrderedDict)
 
 releases[release] = True
 
 with open('../../releases.js', 'w') as outfile:
-    outfile.write("var releases = " + json.dumps(releases))
+    outfile.write(f"var releases = {json.dumps(releases)}")

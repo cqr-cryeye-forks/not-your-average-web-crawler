@@ -27,19 +27,33 @@ class Response(object):
 
     Attributes:
         url (str): The absolute URL of the request/response.
+        text (str): text of response.
 
     Note:
         This class will be replaced with the response class of Python's `requests` module when the
-        request is finished. For more information check http://docs.python-requests.org/en/master/api/#requests.Response.
+        request is finished. For more information check
+        http://docs.python-requests.org/en/master/api/#requests.Response.
 
     """
 
-    def __init__(self, url):
+    def __init__(self, url: str, text: str = '', cookies=None, headers: dict = None):
         """Constructs a Response instance.
 
         Args:
             url (str): The absolute URL of the request/response.
+            text: Result of request
+            cookies: Cookies for request
+            headers (dict): Headers
 
         """
 
+        if headers is None:
+            headers = {}
         self.url = url
+        self.text = text
+        self.cookies = cookies
+        self.headers = headers
+
+    def raise_for_status(self):
+        # TODO no logic writen
+        ...

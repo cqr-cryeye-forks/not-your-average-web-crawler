@@ -22,19 +22,21 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import sys
-import time
 import signal
 import threading
+import time
 import traceback
 
-from nyawc.Queue import Queue
-from nyawc.Routing import Routing
-from nyawc.QueueItem import QueueItem
-from nyawc.CrawlerThread import CrawlerThread
 from nyawc.CrawlerActions import CrawlerActions
+from nyawc.CrawlerThread import CrawlerThread
+from nyawc.Options import Options
+from nyawc.Queue import Queue
+from nyawc.QueueItem import QueueItem
+from nyawc.Routing import Routing
 from nyawc.helpers.DebugHelper import DebugHelper
 from nyawc.helpers.HTTPRequestHelper import HTTPRequestHelper
+from nyawc.http.Request import Request
+
 
 class Crawler(object):
     """The main Crawler class which handles the crawling recursion, queue and processes.
@@ -42,8 +44,8 @@ class Crawler(object):
     Attributes:
         queue (:class:`nyawc.Queue`): The request/response pair queue containing everything to crawl.
         routing (:class:`nyawc.Routing`): A class that identifies requests based on routes from the options.
-        __options (:class:`nyawc.Options`): The options to use for the current crawling runtime.
-        __should_spawn_new_requests (bool): If the crawler should start spwaning new requests.
+        __options: The options to use for the current crawling runtime.
+        __should_spawn_new_requests (bool): If the crawler should start spawning new requests.
         __should_stop (bool): If the crawler should stop the crawling process.
         __stopping (bool): If the crawler is stopping the crawling process.
         __stopped (bool): If the crawler finished stopping the crawler process.
@@ -52,11 +54,11 @@ class Crawler(object):
 
     """
 
-    def __init__(self, options):
+    def __init__(self, options: Options):
         """Constructs a Crawler instance.
 
         Args:
-            options (:class:`nyawc.Options`): The options to use for the current crawling runtime.
+            options: The options to use for the current crawling runtime.
 
         """
 
@@ -81,14 +83,14 @@ class Crawler(object):
             frame (obj): The current stack frame.
 
         """
-
+        print(f"Stopping signum {signum} on frame {frame}")
         self.__crawler_stop()
 
-    def start_with(self, request):
+    def start_with(self, request: Request):
         """Start the crawler using the given request.
 
         Args:
-            request (:class:`nyawc.http.Request`): The startpoint for the crawler.
+            request: The startpoint for the crawler.
 
         """
 
@@ -128,7 +130,7 @@ class Crawler(object):
         """
 
         first_in_line = self.queue.get_first(QueueItem.STATUS_QUEUED)
-        
+
         if first_in_line is None:
             return False
 
@@ -153,7 +155,7 @@ class Crawler(object):
 
         Note:
             The main thread will sleep until the crawler is finished. This enables
-            quiting the application using sigints (see http://stackoverflow.com/a/11816038/2491049).
+            quiting the application using sigint signals (see http://stackoverflow.com/a/11816038/2491049).
 
         Note:
             `__crawler_stop()` and `__spawn_new_requests()` are called here on the main thread to
@@ -210,11 +212,11 @@ class Crawler(object):
             print(e)
             print(traceback.format_exc())
 
-    def __request_start(self, queue_item):
+    def __request_start(self, queue_item: QueueItem):
         """Execute the request in given queue item.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The request/response pair to scrape.
+            queue_item: The request/response pair to scrape.
 
         """
 
@@ -240,12 +242,12 @@ class Crawler(object):
             thread.daemon = True
             thread.start()
 
-    def __request_finish(self, queue_item, new_requests, request_failed=False):
+    def __request_finish(self, queue_item: QueueItem, new_requests: list[Request], request_failed: bool = False):
         """Called when the crawler finished the given queue item.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The request/response pair that finished.
-            new_requests list(:class:`nyawc.http.Request`): All the requests that were found during this request.
+            queue_item: The request/response pair that finished.
+            new_requests: All the requests that were found during this request.
             request_failed (bool): True if the request failed (if needs to be moved to errored).
 
         """
@@ -269,7 +271,7 @@ class Crawler(object):
             action = None
             print(e)
             print(traceback.format_exc())
-        
+
         queue_item.decompose()
 
         if action == CrawlerActions.DO_STOP_CRAWLING:
@@ -278,12 +280,12 @@ class Crawler(object):
         if action == CrawlerActions.DO_CONTINUE_CRAWLING or action is None:
             self.__should_spawn_new_requests = True
 
-    def __add_scraped_requests_to_queue(self, queue_item, scraped_requests):
+    def __add_scraped_requests_to_queue(self, queue_item: QueueItem, scraped_requests: list[Request]):
         """Convert the scraped requests to queue items, return them and also add them to the queue.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The request/response pair that finished.
-            new_requests list(:class:`nyawc.http.Request`): All the requests that were found during this request.
+            queue_item: The request/response pair that finished.
+            scraped_requests: All the requests that were found during this request.
 
         Returns:
             list(:class:`nyawc.QueueItem`): The new queue items.
@@ -302,9 +304,8 @@ class Crawler(object):
                 continue
 
             scraped_request.depth = queue_item.request.depth + 1
-            if self.__options.scope.max_depth is not None:
-                if scraped_request.depth > self.__options.scope.max_depth:
-                    continue
+            if self.__options.scope.max_depth is not None and scraped_request.depth > self.__options.scope.max_depth:
+                continue
 
             new_queue_item = self.queue.add_request(scraped_request)
             new_queue_items.append(new_queue_item)

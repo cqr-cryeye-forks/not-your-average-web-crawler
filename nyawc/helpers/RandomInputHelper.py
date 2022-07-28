@@ -25,6 +25,7 @@
 import random
 import string
 
+
 class RandomInputHelper:
     """A helper for generating random user input.
 
@@ -41,6 +42,11 @@ class RandomInputHelper:
     """
 
     cache = {}
+
+    def __init__(self, cache: dict = None):
+        if cache is None:
+            cache = {}
+        self.cache = cache
 
     @staticmethod
     def get_for_type(input_type="text"):
@@ -65,7 +71,7 @@ class RandomInputHelper:
             "week": {"function": RandomInputHelper.get_random_value, "params": [2, ["1234"]]},
             "password": RandomInputHelper.get_random_password,
             "number": RandomInputHelper.get_random_number,
-            "tel": RandomInputHelper.get_random_telephonenumber,
+            "tel": RandomInputHelper.get_random_telephone_number,
             "url": RandomInputHelper.get_random_url,
             "textarea": RandomInputHelper.get_random_text,
             "email": RandomInputHelper.get_random_email
@@ -85,19 +91,22 @@ class RandomInputHelper:
         return value
 
     @staticmethod
-    def get_random_value(length=10, character_sets=[string.ascii_uppercase, string.ascii_lowercase]):
+    def get_random_value(length: int = 10,
+                         character_sets=None):
         """Get a random string with the given length.
 
         Args:
             length (int): The length of the string to return.
-            character_sets list(str): The caracter sets to use.
+            character_sets: The character sets to use.
 
         Returns:
             str: The random string.
 
         """
 
-        return "".join(random.choice("".join(character_sets)) for i in range(length))
+        if character_sets is None:
+            character_sets = [string.ascii_uppercase, string.ascii_lowercase]
+        return "".join(random.choice("".join(character_sets)) for _ in range(length))
 
     @staticmethod
     def get_random_number(length=4):
@@ -128,15 +137,12 @@ class RandomInputHelper:
     def get_random_text():
         """Get a random string with the given length.
 
-        Args:
-            length (int): The length of the string to return.
-
         Returns:
             str: The random string.
 
         """
 
-        return " ".join(RandomInputHelper.get_random_value()for i in range(20, 30))
+        return " ".join(RandomInputHelper.get_random_value() for _ in range(20, 30))
 
     @staticmethod
     def get_random_email(ltd="com"):
@@ -173,12 +179,12 @@ class RandomInputHelper:
 
         """
 
-        password = []
-
-        password.append(RandomInputHelper.get_random_value(4, [string.ascii_lowercase]))
-        password.append(RandomInputHelper.get_random_value(2, [string.digits]))
-        password.append(RandomInputHelper.get_random_value(2, ["$&*@!"]))
-        password.append(RandomInputHelper.get_random_value(4, [string.ascii_uppercase]))
+        password = [
+            RandomInputHelper.get_random_value(4, [string.ascii_lowercase]),
+            RandomInputHelper.get_random_value(2, [string.digits]),
+            RandomInputHelper.get_random_value(2, ["$&*@!"]),
+            RandomInputHelper.get_random_value(4, [string.ascii_uppercase])
+        ]
 
         return "".join(password)
 
@@ -204,7 +210,7 @@ class RandomInputHelper:
         return "".join(url)
 
     @staticmethod
-    def get_random_telephonenumber():
+    def get_random_telephone_number():
         """Get a random 10 digit phone number that complies with most of the requirements.
 
         Returns:

@@ -34,5 +34,6 @@ if sys.version_info.major == 2 and sys.version_info.minor >= 7:
 
 if not python_version_compatible_with_nyawc:
     print("N.Y.A.W.C requires Python 2.7/3.3 or higher!")
-    print("You are currently using Python {}.{}.".format(sys.version_info.major, sys.version_info.minor))
+    print(f"You are currently using Python {sys.version_info.major}.{sys.version_info.minor}.")
+
     sys.exit(1)

@@ -23,8 +23,12 @@
 # SOFTWARE.
 
 from collections import OrderedDict
-from nyawc.http.Response import Response
+
+from nyawc.Options import Options
 from nyawc.QueueItem import QueueItem
+from nyawc.http.Request import Request
+from nyawc.http.Response import Response
+
 
 class Queue(object):
     """A 'hash' queue containing all the requests of the crawler.
@@ -45,11 +49,11 @@ class Queue(object):
 
     """
 
-    def __init__(self, options):
+    def __init__(self, options: Options):
         """Constructs a Queue instance.
 
         Args:
-            options (:class:`nyawc.Options`): The options to use.
+            options: The options to use.
 
         """
 
@@ -61,11 +65,11 @@ class Queue(object):
         self.items_cancelled = OrderedDict()
         self.items_errored = OrderedDict()
 
-    def add_request(self, request):
+    def add_request(self, request: Request) -> QueueItem:
         """Add a request to the queue.
 
         Args:
-            request (:class:`nyawc.http.Request`): The request to add.
+            request: The request to add.
 
         Returns:
             :class:`nyawc.QueueItem`: The created queue item.
@@ -76,11 +80,11 @@ class Queue(object):
         self.add(queue_item)
         return queue_item
 
-    def has_request(self, request):
+    def has_request(self, request: Request):
         """Check if the given request already exists in the queue.
 
         Args:
-            request (:class:`nyawc.http.Request`): The request to check.
+            request: The request to check.
 
         Returns:
             bool: True if already exists, False otherwise.
@@ -90,13 +94,9 @@ class Queue(object):
         queue_item = QueueItem(request, Response(request.url))
         key = queue_item.get_hash()
 
-        for status in QueueItem.STATUSES:
-            if key in self.__get_var("items_" + status).keys():
-                return True
+        return any(key in self.__get_var(f"items_{status}").keys() for status in QueueItem.STATUSES)
 
-        return False
-
-    def add(self, queue_item):
+    def add(self, queue_item: QueueItem):
         """Add a request/response pair to the queue.
 
         Args:
@@ -105,7 +105,7 @@ class Queue(object):
         """
 
         hash_key = queue_item.get_hash()
-        items = self.__get_var("items_" + queue_item.status)
+        items = self.__get_var(f"items_{queue_item.status}")
 
         if hash_key in items.keys():
             return
@@ -114,16 +114,16 @@ class Queue(object):
 
         self.count_total += 1
 
-    def move(self, queue_item, status):
+    def move(self, queue_item: QueueItem, status):
         """Move a request/response pair to another status.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item to move
+            queue_item: The queue item to move
             status (str): The new status of the queue item.
 
         """
 
-        items = self.__get_var("items_" + queue_item.status)
+        items = self.__get_var(f"items_{queue_item.status}")
 
         del items[queue_item.get_hash()]
         self.count_total -= 1
@@ -131,39 +131,34 @@ class Queue(object):
         queue_item.status = status
         self.add(queue_item)
 
-    def move_bulk(self, from_statuses, to_status):
+    def move_bulk(self, from_statuses: list[str], to_status):
         """Move a bulk of request/response pairs to another status
 
         Args:
-            from_statuses list(str): The statuses to move from
+            from_statuses: The statuses to move from
             to_status (str): The status to move to
 
         """
 
         for status in from_statuses:
-            from_status_items = self.__get_var("items_" + status)
-            self.__set_var("items_" + status, OrderedDict())
+            from_status_items = self.__get_var(f"items_{status}")
+            self.__set_var(f"items_{status}", OrderedDict())
 
-            to_status_items = self.__get_var("items_" + to_status)
+            to_status_items = self.__get_var(f"items_{to_status}")
             to_status_items.update(from_status_items)
 
-    def get_first(self, status):
+    def get_first(self, status) -> QueueItem:
         """Get the first item in the queue that has the given status.
 
         Args:
             status (str): return the first item with this status.
 
         Returns:
-            :class:`nyawc.QueueItem`: The first queue item with the given status.
+            The first queue item with the given status.
 
         """
 
-        items = self.get_all(status)
-
-        if items:
-            return list(items.items())[0][1]
-
-        return None
+        return list(items.items())[0][1] if (items := self.get_all(status)) else None
 
     def get_all(self, status):
         """Get all the items in the queue that have the given status.
@@ -176,7 +171,7 @@ class Queue(object):
 
         """
 
-        return self.__get_var("items_" + status)
+        return self.__get_var(f"items_{status}")
 
     def get_progress(self):
         """Get the progress of the queue in percentage (float).
@@ -196,7 +191,7 @@ class Queue(object):
 
         Args:
             name (str): The name of the variable.
-            value (obj): I'ts new value.
+            value (obj): It's new value.
 
         """
 
@@ -209,7 +204,7 @@ class Queue(object):
             name (str): The name of the variable.
 
         Returns:
-            obj: I'ts value.
+            obj: It's value.
 
         """
 

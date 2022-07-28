@@ -24,9 +24,10 @@
 
 import re
 
-from nyawc.http.Request import Request
 from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
 from nyawc.scrapers.BaseScraper import BaseScraper
+
 
 class CSSRegexLinkScraper(BaseScraper):
     """The CSSRegexLinkScraper finds absolute and relative URLs in Cascading Style Sheets.
@@ -46,11 +47,12 @@ class CSSRegexLinkScraper(BaseScraper):
         {"group": 1, "raw": r"\(([\"\'])?(((((https?:)?\/)?\/)|(\.\.\/)+)([^\n ]*?))(\1)?\)"}
     ]
 
-    def derived_get_requests(self):
-        """Get all the new requests that were found in the response.
+    def derived_get_requests(self) -> list[Request]:
+        """
+        Get all the new requests that were found in the response.
 
         Returns:
-            list(:class:`nyawc.http.Request`): A list of new requests that were found.
+            list: A list of new requests that were found.
 
         """
 

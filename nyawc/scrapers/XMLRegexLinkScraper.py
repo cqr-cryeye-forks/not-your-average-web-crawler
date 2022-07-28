@@ -24,9 +24,10 @@
 
 import re
 
-from nyawc.http.Request import Request
 from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
 from nyawc.scrapers.BaseScraper import BaseScraper
+
 
 class XMLRegexLinkScraper(BaseScraper):
     """The XMLRegexLinkScraper finds absolute and relative URLs in XML values.
@@ -52,7 +53,8 @@ class XMLRegexLinkScraper(BaseScraper):
     ]
 
     def derived_get_requests(self):
-        """Get all the new requests that were found in the response.
+        """
+        Get all the new requests that were found in the response.
 
         Returns:
             list(:class:`nyawc.http.Request`): A list of new requests that were found.

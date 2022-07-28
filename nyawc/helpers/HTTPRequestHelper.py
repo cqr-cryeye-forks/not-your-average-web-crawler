@@ -24,19 +24,23 @@
 
 import copy
 
+from nyawc.Options import Options, OptionsScope
+from nyawc.QueueItem import QueueItem
 from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
+
 
 class HTTPRequestHelper:
     """A helper for the src.http.Request module."""
 
     @staticmethod
-    def patch_with_options(request, options, parent_queue_item=None):
+    def patch_with_options(request: Request, options: Options, parent_queue_item: QueueItem = None):
         """Patch the given request with the given options (e.g. user agent).
 
         Args:
-            request (:class:`nyawc.http.Request`): The request to patch.
-            options (:class:`nyawc.Options`): The options to patch the request with.
-            parent_queue_item (:class:`nyawc.QueueItem`): The parent queue item object (request/response pair) if exists.
+            request: The request to patch.
+            options: The options to patch the request with.
+            parent_queue_item: The parent queue item object (request/response pair) if exists.
 
         """
 
@@ -46,7 +50,7 @@ class HTTPRequestHelper:
         request.proxies = copy.deepcopy(options.identity.proxies)
         request.timeout = copy.copy(options.performance.request_timeout)
 
-        if parent_queue_item != None:
+        if parent_queue_item is not None:
             for cookie in parent_queue_item.request.cookies:
                 request.cookies.set(cookie.name, cookie.value, domain=cookie.domain, path=cookie.path)
 
@@ -59,13 +63,13 @@ class HTTPRequestHelper:
             request.verify = options.misc.verify_ssl_certificates
 
     @staticmethod
-    def complies_with_scope(queue_item, new_request, scope):
+    def complies_with_scope(queue_item: QueueItem, new_request: Request, scope: OptionsScope):
         """Check if the new request complies with the crawling scope.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The parent queue item of the new request.
-            new_request (:class:`nyawc.http.Request`): The request to check.
-            scope (:class:`nyawc.Options.OptionsScope`): The scope to check.
+            queue_item: The parent queue item of the new request.
+            new_request: The request to check.
+            scope: The scope to check.
 
         Returns:
             bool: True if it complies, False otherwise.
@@ -78,13 +82,13 @@ class HTTPRequestHelper:
         if not URLHelper.is_parsable(new_request.url):
             return False
 
-        if scope.request_methods:
-            if not queue_item.request.method in scope.request_methods:
-                return False
+        if scope.request_methods \
+                and queue_item.request.method not in scope.request_methods:
+            return False
 
-        if scope.protocol_must_match:
-            if URLHelper.get_protocol(queue_item.request.url) != URLHelper.get_protocol(new_request.url):
-                return False
+        if scope.protocol_must_match \
+                and URLHelper.get_protocol(queue_item.request.url) != URLHelper.get_protocol(new_request.url):
+            return False
 
         if scope.subdomain_must_match:
             current_subdomain = URLHelper.get_subdomain(queue_item.request.url)
@@ -101,22 +105,21 @@ class HTTPRequestHelper:
             if not www_matches and current_subdomain != new_subdomain:
                 return False
 
-        if scope.hostname_must_match:
-            if URLHelper.get_hostname(queue_item.request.url) != URLHelper.get_hostname(new_request.url):
-                return False
+        if scope.hostname_must_match \
+                and URLHelper.get_hostname(queue_item.request.url) != URLHelper.get_hostname(new_request.url):
+            return False
 
-        if scope.tld_must_match:
-            if URLHelper.get_tld(queue_item.request.url) != URLHelper.get_tld(new_request.url):
-                return False
+        if scope.tld_must_match and URLHelper.get_tld(queue_item.request.url) != URLHelper.get_tld(new_request.url):
+            return False
 
         return True
 
     @staticmethod
-    def get_cookie_header(queue_item):
+    def get_cookie_header(queue_item: QueueItem):
         """Convert a requests cookie jar to a HTTP request cookie header value.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The parent queue item of the new request.
+            queue_item: The parent queue item of the new request.
 
         Returns:
             str: The HTTP cookie header value.
@@ -127,8 +130,8 @@ class HTTPRequestHelper:
         path = URLHelper.get_path(queue_item.request.url)
 
         for cookie in queue_item.request.cookies:
-            root_path = cookie.path == "" or cookie.path == "/"
+            root_path = cookie.path in ["", "/"]
             if path.startswith(cookie.path) or root_path:
-                header.append(cookie.name + "=" + cookie.value)
+                header.append(f"{cookie.name}={cookie.value}")
 
         return "&".join(header)

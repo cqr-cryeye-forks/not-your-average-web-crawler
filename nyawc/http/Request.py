@@ -24,6 +24,7 @@
 
 from nyawc.helpers.URLHelper import URLHelper
 
+
 class Request(object):
     """The Request class contains details that were used to request the specified URL.
 
@@ -49,18 +50,24 @@ class Request(object):
     """
 
     METHOD_OPTIONS = "options"
-
     METHOD_GET = "get"
-
     METHOD_HEAD = "head"
-
     METHOD_POST = "post"
-
     METHOD_PUT = "put"
-
     METHOD_DELETE = "delete"
 
-    def __init__(self, url, method=METHOD_GET, data=None, auth=None, cookies=None, headers=None, proxies=None, timeout=30, verify=True):
+    def __init__(self,
+                 url: str,
+                 method: str = METHOD_GET,
+                 data=None,
+                 auth=None,
+                 cookies=None,
+                 headers=None,
+                 proxies=None,
+                 verify=True,
+                 timeout=30,
+
+                 ):
         """Constructs a Request instance.
 
         Args:
@@ -72,7 +79,7 @@ class Request(object):
             headers (obj): The headers {key: value} to use for the request.
             proxies (obj): The proxies {key: value} to use for the request.
             timeout (int): The amount of seconds to wait before a timeout exception will be thrown.
-            verify (mixed): True or False based on if certificates should be checked or else a path to a trusted bundle.
+            verify (bool, str): Bool based on if certificates should be checked or else a path to a trusted bundle.
 
         """
 
@@ -87,6 +94,13 @@ class Request(object):
         self.proxies = proxies
         self.timeout = timeout
         self.verify = verify
+
+        self.METHOD_OPTIONS = "options"
+        self.METHOD_GET = "get"
+        self.METHOD_HEAD = "head"
+        self.METHOD_POST = "post"
+        self.METHOD_PUT = "put"
+        self.METHOD_DELETE = "delete"
 
         if method == self.METHOD_GET:
             self.url = URLHelper.append_with_data(self.url, data)

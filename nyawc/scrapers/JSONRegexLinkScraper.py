@@ -24,9 +24,10 @@
 
 import re
 
-from nyawc.http.Request import Request
 from nyawc.helpers.URLHelper import URLHelper
+from nyawc.http.Request import Request
 from nyawc.scrapers.BaseScraper import BaseScraper
+
 
 class JSONRegexLinkScraper(BaseScraper):
     """The JSONRegexLinkScraper finds absolute and relative URLs in JSON keys and values.

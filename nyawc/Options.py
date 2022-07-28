@@ -22,12 +22,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import requests
-
-from nyawc.http.Request import Request
-from nyawc.helpers.PackageHelper import PackageHelper
-from nyawc.CrawlerActions import CrawlerActions
+from requests.cookies import RequestsCookieJar
+from requests.utils import default_headers
 from requests_toolbelt import user_agent
+
+from nyawc.CrawlerActions import CrawlerActions
+from nyawc.Queue import Queue
+from nyawc.QueueItem import QueueItem
+from nyawc.helpers.PackageHelper import PackageHelper
+
 
 class Options(object):
     """The Options class contains all the crawling options.
@@ -52,16 +55,20 @@ class Options(object):
         self.routing = OptionsRouting()
         self.misc = OptionsMisc()
 
+
 class OptionsScope(object):
     """The OptionsScope class contains the scope options.
 
     Attributes:
         protocol_must_match (bool): only crawl pages with the same protocol as the startpoint (e.g. only https).
-        subdomain_must_match (bool): only crawl pages with the same subdomain as the startpoint, if the startpoint is not a subdomain, no subdomains will be crawled.
+        subdomain_must_match (bool): only crawl pages with the same subdomain as the startpoint, if the startpoint is
+        not a subdomain, no subdomains will be crawled.
         hostname_must_match (bool): only crawl pages with the same hostname as the startpoint (e.g. only `finnwea`).
         tld_must_match (bool): only crawl pages with the same tld as the startpoint (e.g. only `.com`)
-        max_depth (obj): the maximum search depth. For example, 2 would be the startpoint and all the pages found on it. Default is None (unlimited).
-        request_methods list(str): only crawl these request methods. If empty or ``None`` all request methods will be crawled. Default is all.
+        max_depth (obj): the maximum search depth. For example, 2 would be the startpoint and all the pages found
+         on it. Default is None (unlimited).
+        request_methods list(str): only crawl these request methods. If empty or ``None`` all request methods
+        will be crawled. Default is all.
 
     """
 
@@ -75,19 +82,29 @@ class OptionsScope(object):
         self.max_depth = None
         self.request_methods = []
 
+
 class OptionsCallbacks(object):
     """The OptionsCallbacks class contains all the callback methods.
 
     Attributes:
-        crawler_before_start (obj): called before the crawler starts crawling. Default is a null route to :attr:`__null_route_crawler_before_start`.
-        crawler_after_finish (obj): called after the crawler finished crawling. Default is a null route to :attr:`__null_route_crawler_after_finish`.
-        request_before_start (obj): called before the crawler starts a new request. Default is a null route to :attr:`__null_route_request_before_start`.
-        request_after_finish (obj): called after the crawler finishes a request. Default is a null route to :attr:`__null_route_request_after_finish`.
-        request_in_thread_before_start (obj): called in the crawling thread (when it started). Default is a null route to :attr:`__null_route_request_in_thread_before_start`.
-        request_in_thread_after_finish (obj): called in the crawling thread (when it finished). Default is a null route to :attr:`__null_route_request_in_thread_after_finish`.
-        request_on_error (obj): called if a request failed. Default is a null route to :attr:`__null_route_request_on_error`.
-        form_before_autofill (obj): called before the crawler starts autofilling a form. Default is a null route to :attr:`__null_route_form_before_autofill`.
-        form_after_autofill (obj): called after the crawler finishes autofilling a form. Default is a null route to :attr:`__null_route_form_after_autofill`.
+        crawler_before_start (obj): called before the crawler starts crawling.
+        Default is a null route to :attr:`__null_route_crawler_before_start`.
+        crawler_after_finish (obj): called after the crawler finished crawling.
+        Default is a null route to :attr:`__null_route_crawler_after_finish`.
+        request_before_start (obj): called before the crawler starts a new request.
+        Default is a null route to :attr:`__null_route_request_before_start`.
+        request_after_finish (obj): called after the crawler finishes a request.
+        Default is a null route to :attr:`__null_route_request_after_finish`.
+        request_in_thread_before_start (obj): called in the crawling thread (when it started).
+        Default is a null route to :attr:`__null_route_request_in_thread_before_start`.
+        request_in_thread_after_finish (obj): called in the crawling thread (when it finished).
+        Default is a null route to :attr:`__null_route_request_in_thread_after_finish`.
+        request_on_error (obj): called if a request failed.
+        Default is a null route to :attr:`__null_route_request_on_error`.
+        form_before_autofill (obj): called before the crawler starts auto filling a form.
+        Default is a null route to :attr:`__null_route_form_before_autofill`.
+        form_after_autofill (obj): called after the crawler finishes auto filling a form.
+        Default is a null route to :attr:`__null_route_form_after_autofill`.
 
     """
 
@@ -119,27 +136,30 @@ class OptionsCallbacks(object):
 
         pass
 
-    def __null_route_request_before_start(self, queue, queue_item):
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def __null_route_request_before_start(queue: Queue, queue_item: QueueItem):
         """A null route for the 'request before start' callback.
 
         Args:
-            queue (:class:`nyawc.Queue`): The current crawling queue.
+            queue: The current crawling queue.
             queue_item (:class:`nyawc.QueueItem`): The queue item that's about to start.
 
         Returns:
             str: A crawler action (either DO_SKIP_TO_NEXT, DO_STOP_CRAWLING or DO_CONTINUE_CRAWLING).
 
         """
-
         return CrawlerActions.DO_CONTINUE_CRAWLING
 
-    def __null_route_request_after_finish(self, queue, queue_item, new_queue_items):
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def __null_route_request_after_finish(queue: Queue, queue_item: QueueItem, new_queue_items: list[QueueItem]):
         """A null route for the 'request after finish' callback.
 
         Args:
-            queue (:class:`nyawc.Queue`): The current crawling queue.
-            queue_item (:class:`nyawc.QueueItem`): The queue item that was finished.
-            new_queue_items list(:class:`nyawc.QueueItem`): The new queue items that were found in the one that finished.
+            queue: The current crawling queue.
+            queue_item: The queue item that was finished.
+            new_queue_items: The new queue items that were found in the one that finished.
 
         Returns:
             str: A crawler action (either DO_STOP_CRAWLING or DO_CONTINUE_CRAWLING).
@@ -185,11 +205,13 @@ class OptionsCallbacks(object):
 
         pass
 
-    def __null_route_form_before_autofill(self, queue_item, elements, form_data):
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def __null_route_form_before_autofill(queue_item: QueueItem, elements: list, form_data):
         """A null route for the 'form before autofill' callback.
 
         Args:
-            queue_item (:class:`nyawc.QueueItem`): The queue item that was finished.
+            queue_item: The queue item that was finished.
             elements list(obj): The soup elements found in the form.
             form_data (obj): The {key: value} form fields to be autofilled.
 
@@ -212,6 +234,7 @@ class OptionsCallbacks(object):
 
         pass
 
+
 class OptionsPerformance(object):
     """The OptionsPerformance class contains the performance options.
 
@@ -227,14 +250,18 @@ class OptionsPerformance(object):
         self.max_threads = 40
         self.request_timeout = 30
 
+
 class OptionsIdentity(object):
     """The OptionsIdentity class contains the identity/footprint options.
 
     Attributes:
-        auth (obj): The (requests module) authentication class to use when making a request. For more information check http://docs.python-requests.org/en/master/user/authentication/.
-        cookies (obj): The (requests module) cookie jar to use when making a request. For more information check http://docs.python-requests.org/en/master/user/quickstart/#cookies.
+        auth (obj): The (requests module) authentication class to use when making a request.
+        For more information check http://docs.python-requests.org/en/master/user/authentication/.
+        cookies (obj): The (requests module) cookie jar to use when making a request.
+        For more information check http://docs.python-requests.org/en/master/user/quickstart/#cookies.
         headers (obj): The headers {key: value} to use when making a request.
-        proxies (obj): The proxies {key: value} to use when making a request. For more information check http://docs.python-requests.org/en/master/user/advanced/#proxies.
+        proxies (obj): The proxies {key: value} to use when making a request.
+        For more information check http://docs.python-requests.org/en/master/user/advanced/#proxies.
 
     """
 
@@ -242,25 +269,32 @@ class OptionsIdentity(object):
         """Constructs an OptionsIdentity instance."""
 
         self.auth = None
-        self.cookies = requests.cookies.RequestsCookieJar()
-        self.headers = requests.utils.default_headers()
+        self.cookies = RequestsCookieJar()
+        self.headers = default_headers()
         self.headers.update({"User-Agent": user_agent(PackageHelper.get_alias(), PackageHelper.get_version())})
         self.proxies = None
+
 
 class OptionsRouting(object):
     """The OptionsRouting class can contain routes that prevent the crawler from crawling similar pages multiple times.
 
     Attributes:
-        minimum_threshold (int): The minimum amount of requests to crawl (matching a certain route) before ignoring the rest. Default is 20.
-        routes (arr): The regular expressions that represent routes that should not be cralwed more times than the minimum treshold. Default is an empty array.
+        minimum_threshold (int): The minimum amount of requests to crawl (matching a certain route) before
+        ignoring the rest. Default is 20.
+        routes (arr): The regular expressions that represent routes that should not be crawled more times than
+        the minimum treshold. Default is an empty array.
 
     Note:
-        An example would be if you have a news site with URLs like (/news/3443, news/2132, news/9475, etc). You can add a regular expression
-        that matches this route so only X requests that match regular expression will be crawled (where X is the minimum treshold).
+        An example would be if you have a news site with URLs like (/news/3443, news/2132, news/9475, etc).
+        You can add a regular expression
+        that matches this route so only X requests that match regular expression will be crawled
+        (where X is the minimum treshold).
 
     Note:
-        The crawler will only stop crawling requests of certain routes at exactly the minimum treshold if the maximum threads option is set to 1.
-        If the maximum threads option is set to a value higher than 1 the threshold will get a bit higher depending on the amount of threads used.
+        The crawler will only stop crawling requests of certain routes at exactly the minimum treshold if the
+        maximum threads option is set to 1.
+        If the maximum threads option is set to a value higher than 1 the threshold will get a bit higher
+        depending on the amount of threads used.
 
     """
 
@@ -276,8 +310,10 @@ class OptionsMisc(object):
 
     Attributes:
         debug (bool): If debug is enabled extra information will be logged to the console. Default is False.
-        verify_ssl_certificates (bool): If verification is enabled all SSL certificates will be checked for validity. Default is True.
-        trusted_certificates (str): You can pass the path to a CA_BUNDLE file or directory with certificates of trusted CAs. Default is None.
+        verify_ssl_certificates (bool): If verification is enabled all SSL certificates will be checked for validity.
+        Default is True.
+        trusted_certificates (str): You can pass the path to a CA_BUNDLE file or directory with certificates of trusted
+        CAs. Default is None.
 
     """
 
