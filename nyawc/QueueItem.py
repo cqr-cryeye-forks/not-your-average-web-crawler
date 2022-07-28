@@ -65,7 +65,7 @@ class QueueItem(object):
         STATUS_ERRORED
     ]
 
-    def __init__(self, request: Request, response: Response, payload=None):
+    def __init__(self, request: Request, response: Response, payload=None, verify_item: 'QueueItem' = None):
         """Constructs a QueueItem instance.
 
         Args:
@@ -79,7 +79,7 @@ class QueueItem(object):
         self.decomposed = False
         self.__response_soup = None
         self.__index_hash = None
-
+        self.verify_item = verify_item
         self.request = request
         self.response = response
         self.payload = payload

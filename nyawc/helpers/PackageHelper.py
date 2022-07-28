@@ -22,9 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import os
 import re
-from pathlib import Path
 
 import pkg_resources
 
@@ -114,12 +112,8 @@ class PackageHelper:
         PackageHelper.__version = "Unknown"
 
         # If this is a GIT clone without install, use the ``.semver`` file.
-        file = Path(__file__).absolute()
-        folder = file.parents[2]
-
         try:
-            with open(folder.joinpath('.semver'), "r") as semver:
-                PackageHelper.__version = semver.read().rstrip()
+            PackageHelper.__version = '1.9'
             return PackageHelper.__version
         except Exception as e:
             print(e)
