@@ -40,7 +40,7 @@ class Handler(object):
 
     """
 
-    def __init__(self, options: Options, queue_item: QueueItem):
+    def __init__(self, options: Options | None, queue_item: QueueItem):
         """Construct the HTTP handler.
 
         Args:

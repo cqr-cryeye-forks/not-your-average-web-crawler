@@ -65,12 +65,13 @@ class QueueItem(object):
         STATUS_ERRORED
     ]
 
-    def __init__(self, request: Request, response: Response):
+    def __init__(self, request: Request, response: Response, payload=None):
         """Constructs a QueueItem instance.
 
         Args:
             request: The Request object.
             response: The Response object (empty object when initialized).
+            payload: Payload data
 
         """
 
@@ -81,7 +82,7 @@ class QueueItem(object):
 
         self.request = request
         self.response = response
-
+        self.payload = payload
         self.STATUS_QUEUED = "queued"
         self.STATUS_IN_PROGRESS = "in_progress"
         self.STATUS_FINISHED = "finished"
