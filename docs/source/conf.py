@@ -21,6 +21,7 @@ import json
 import os
 import sys
 from collections import OrderedDict
+from pathlib import Path
 
 from better import better_theme_path
 
@@ -63,7 +64,8 @@ author = 'Tijme Gommers'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 
-with open("../../.semver") as file:
+base_path = Path(__file__).absolute().parents[2]
+with open(base_path.joinpath(".semver")) as file:
     semver = file.read().rstrip()
 
 # The short X.Y version.
