@@ -24,6 +24,7 @@
 
 import os
 import re
+from pathlib import Path
 
 import pkg_resources
 
@@ -113,11 +114,11 @@ class PackageHelper:
         PackageHelper.__version = "Unknown"
 
         # If this is a GIT clone without install, use the ``.semver`` file.
-        file = os.path.realpath(__file__)
-        folder = os.path.dirname(file)
+        file = Path(__file__).absolute()
+        folder = file.parents[2]
 
         try:
-            with open(f"{folder}/../../.semver", "r") as semver:
+            with open(folder.joinpath('.semver'), "r") as semver:
                 PackageHelper.__version = semver.read().rstrip()
             return PackageHelper.__version
         except Exception as e:

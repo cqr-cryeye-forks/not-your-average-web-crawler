@@ -24,7 +24,7 @@
 
 from collections import OrderedDict
 
-from nyawc.Options import Options
+# from nyawc.Options import Options
 from nyawc.QueueItem import QueueItem
 from nyawc.http.Request import Request
 from nyawc.http.Response import Response
@@ -39,7 +39,7 @@ class Queue(object):
         over all items.
 
     Attributes:
-        __options (:class:`nyawc.Options`): The options to use (used when generating queue item hashes).
+        __options (:class:`Options`): The options to use (used when generating queue item hashes).
         count_total (int): The total count of requests in the queue.
         items_queued list(:class:`nyawc.QueueItem`): The queued items (yet to be executed).
         items_in_progress list(:class:`nyawc.QueueItem`): The items currently being executed.
@@ -49,11 +49,11 @@ class Queue(object):
 
     """
 
-    def __init__(self, options: Options):
+    def __init__(self, options):
         """Constructs a Queue instance.
 
         Args:
-            options: The options to use.
+            options (:class:`Options`): The options to use.
 
         """
 
